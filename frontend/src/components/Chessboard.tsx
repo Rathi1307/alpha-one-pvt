@@ -3,7 +3,7 @@ import { PieceCode } from '../types/chess';
 import { playMoveSound } from '../utils/audio';
 
 /* ====================================================================
-   Midnight Slate Theme — Modern & Clean (Recommended)
+   Midnight Slate Theme — Modern & Clean
    ==================================================================== */
 const LIGHT          = '#4B5568'; // Light Square
 const DARK           = '#151B26'; // Dark Square
@@ -197,30 +197,36 @@ export const Chessboard: React.FC<ChessboardProps> = ({
     });
   });
 
-  const BOARD_SIZE = 'min(92vw, 560px)';
-
   return (
-    <div style={{ display: 'inline-block', userSelect: 'none' }}>
+    <div
+      style={{
+        width: '100%',
+        maxWidth: 540,
+        aspectRatio: '1 / 1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        userSelect: 'none',
+        touchAction: 'manipulation',
+      }}
+    >
       <div
         style={{
-          width: BOARD_SIZE,
-          height: BOARD_SIZE,
-          borderRadius: 12,
+          width: '100%',
+          height: '100%',
+          borderRadius: 'clamp(8px, 1.5vw, 14px)',
           overflow: 'hidden',
           boxShadow: '0 30px 80px -15px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(0,0,0,0.6)',
           display: 'grid',
           gridTemplateColumns: 'repeat(8, 1fr)',
           gridTemplateRows:    'repeat(8, 1fr)',
-          border: '5px solid #252D3A',
+          border: 'clamp(3px, 0.6vw, 5px) solid #252D3A',
         }}
       >
         {squares.map(({ sq, rank, file, rowIdx, colIdx }) => {
           const matRow = 8 - rank;
           const piece  = boardMatrix[matRow]?.[file] ?? '--';
 
-          // Standard Chess:
-          // a1 is DARK, h1 is LIGHT, e1 (White King) is DARK, d1 (White Queen) is LIGHT
-          // Formula: (rank + file) % 2 === 0 is LIGHT, !== 0 is DARK
           const isLight    = (rank + file) % 2 === 0;
           const isSelected = selectedSquare === sq;
           const isValid    = validDests.has(sq);
@@ -230,7 +236,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
           const isHovered  = hoveredSquare === sq && !disabled;
 
           let bg = isLight ? LIGHT : DARK;
-          if (isSelected)                 bg = isLight ? SELECTED_LIGHT : SELECTED_DARK;
+          if (isSelected)                  bg = isLight ? SELECTED_LIGHT : SELECTED_DARK;
           else if (isLastFrom || isLastTo) bg = isLight ? LAST_LIGHT : LAST_DARK;
 
           const showRankLabel = colIdx === 0;
@@ -267,59 +273,85 @@ export const Chessboard: React.FC<ChessboardProps> = ({
             >
               {/* Coordinate labels */}
               {showRankLabel && (
-                <span style={{
-                  position: 'absolute', top: 3, left: 4,
-                  fontSize: 10, fontWeight: 700,
-                  fontFamily: 'var(--font-mono)',
-                  color: isLight ? '#151B26' : '#6B9ED6',
-                  lineHeight: 1, pointerEvents: 'none', zIndex: 6,
-                  opacity: 0.85,
-                }}>
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: 3,
+                    fontSize: 'clamp(8px, 1.3vw, 10px)',
+                    fontWeight: 700,
+                    fontFamily: 'var(--font-mono)',
+                    color: isLight ? '#151B26' : '#6B9ED6',
+                    lineHeight: 1,
+                    pointerEvents: 'none',
+                    zIndex: 6,
+                    opacity: 0.85,
+                  }}
+                >
                   {rank}
                 </span>
               )}
               {showFileLabel && (
-                <span style={{
-                  position: 'absolute', bottom: 3, right: 4,
-                  fontSize: 10, fontWeight: 700,
-                  fontFamily: 'var(--font-mono)',
-                  color: isLight ? '#151B26' : '#6B9ED6',
-                  lineHeight: 1, pointerEvents: 'none', zIndex: 6,
-                  opacity: 0.85,
-                }}>
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    right: 3,
+                    fontSize: 'clamp(8px, 1.3vw, 10px)',
+                    fontWeight: 700,
+                    fontFamily: 'var(--font-mono)',
+                    color: isLight ? '#151B26' : '#6B9ED6',
+                    lineHeight: 1,
+                    pointerEvents: 'none',
+                    zIndex: 6,
+                    opacity: 0.85,
+                  }}
+                >
                   {String.fromCharCode(97 + file)}
                 </span>
               )}
 
               {/* Check highlight */}
               {isCheck && (
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: CHECK_BG, zIndex: 2, pointerEvents: 'none',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: CHECK_BG,
+                    zIndex: 2,
+                    pointerEvents: 'none',
+                  }}
+                />
               )}
 
               {/* Hover highlight */}
               {isHovered && !isSelected && (
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  zIndex: 2, pointerEvents: 'none',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    zIndex: 2,
+                    pointerEvents: 'none',
+                  }}
+                />
               )}
 
-              {/* Legal move indicator (dot or target ring) */}
+              {/* Legal move indicator */}
               {isValid && (
-                <div style={{
-                  position: 'absolute',
-                  width:        piece !== '--' ? '88%' : '30%',
-                  height:       piece !== '--' ? '88%' : '30%',
-                  borderRadius: '50%',
-                  border:       piece !== '--' ? `3.5px solid ${LEGAL_MOVE}` : 'none',
-                  backgroundColor: piece !== '--' ? 'transparent' : 'rgba(107, 158, 214, 0.5)',
-                  boxShadow:    piece !== '--' ? `0 0 10px rgba(107, 158, 214, 0.45)` : '0 2px 4px rgba(0,0,0,0.4)',
-                  zIndex: 3, pointerEvents: 'none',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: piece !== '--' ? '88%' : '30%',
+                    height: piece !== '--' ? '88%' : '30%',
+                    borderRadius: '50%',
+                    border: piece !== '--' ? `clamp(2.5px, 0.5vw, 3.5px) solid ${LEGAL_MOVE}` : 'none',
+                    backgroundColor: piece !== '--' ? 'transparent' : 'rgba(107, 158, 214, 0.55)',
+                    boxShadow: piece !== '--' ? '0 0 10px rgba(107, 158, 214, 0.45)' : '0 2px 4px rgba(0,0,0,0.4)',
+                    zIndex: 3,
+                    pointerEvents: 'none',
+                  }}
+                />
               )}
 
               {/* Realistic High-Res Piece Graphic */}

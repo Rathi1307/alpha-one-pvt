@@ -36,13 +36,13 @@ export const EngineStats: React.FC<EngineStatsProps> = ({ stats, isThinking }) =
             <path d="M14.83 9.17a4 4 0 0 1 0 5.66"/>
             <path d="M9.17 9.17a4 4 0 0 0 0 5.66"/>
           </svg>
-          Engine Analysis
+          <span>Engine Analysis</span>
         </div>
 
         {/* Status badge */}
         {isThinking ? (
           <div className="badge badge-cyan">
-            <div className="badge-dot" style={{ animation: 'glow-pulse 1s ease-in-out infinite' }} />
+            <div className="badge-dot" style={{ animation: 'pulseGlow 1s ease-in-out infinite' }} />
             <span>THINKING</span>
             <div style={{ display: 'flex', gap: 3, alignItems: 'center', marginLeft: 2 }}>
               <span className="thinking-dot" />
@@ -53,12 +53,19 @@ export const EngineStats: React.FC<EngineStatsProps> = ({ stats, isThinking }) =
         ) : (
           <div className="badge badge-green">
             <div className="badge-dot" />
-            READY
+            <span>READY</span>
           </div>
         )}
       </div>
 
-      <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <div
+        className="card-body"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(80px, 20vw, 100px), 1fr))',
+          gap: 'clamp(6px, 1.2vw, 10px)',
+        }}
+      >
         <StatTile
           icon={<Layers size={11} />}
           label="DEPTH"
@@ -105,7 +112,7 @@ export const EngineStats: React.FC<EngineStatsProps> = ({ stats, isThinking }) =
 
       {/* Score meter */}
       {stats && (
-        <div style={{ padding: '0 18px 16px' }}>
+        <div style={{ padding: '0 clamp(12px, 2vw, 18px) clamp(10px, 1.5vw, 14px)' }}>
           <div style={{
             height: 3,
             borderRadius: 99,
@@ -126,7 +133,7 @@ export const EngineStats: React.FC<EngineStatsProps> = ({ stats, isThinking }) =
             display: 'flex',
             justifyContent: 'space-between',
             marginTop: 4,
-            fontSize: 10,
+            fontSize: 'clamp(9px, 1vw, 10.5px)',
             color: 'var(--text-dim)',
             fontFamily: 'var(--font-mono)',
           }}>

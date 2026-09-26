@@ -10,7 +10,7 @@ export const RobotHero: React.FC = () => {
     if (!container) return;
 
     let width = container.clientWidth || window.innerWidth;
-    let height = container.clientHeight || 650;
+    let height = container.clientHeight || 450;
 
     // ─────────────────────────────────────────────────────────────
     // 1. Scene & Camera Setup
@@ -20,8 +20,6 @@ export const RobotHero: React.FC = () => {
     const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
     camera.position.set(0, 0.38, 3.9);
 
-    // WebGL can be disabled by a browser, graphics driver, or corporate policy.
-    // Do not let the decorative hero take down the entire chess application.
     const canvas = document.createElement('canvas');
     const webglContext = canvas.getContext('webgl2') || canvas.getContext('webgl');
     if (!webglContext) {
@@ -31,7 +29,7 @@ export const RobotHero: React.FC = () => {
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
       setWebglUnavailable(true);
       return;
@@ -50,7 +48,6 @@ export const RobotHero: React.FC = () => {
     const ambientLight = new THREE.AmbientLight(0xf5f6fa, 1.1);
     scene.add(ambientLight);
 
-    // Key Light (warm studio spotlight from top-right)
     const keyLight = new THREE.DirectionalLight(0xfff5eb, 2.2);
     keyLight.position.set(3, 4.5, 3.2);
     keyLight.castShadow = true;
@@ -59,17 +56,14 @@ export const RobotHero: React.FC = () => {
     keyLight.shadow.bias = -0.0008;
     scene.add(keyLight);
 
-    // Fill Light (soft cool light from left)
     const fillLight = new THREE.DirectionalLight(0xdbe4ee, 1.2);
     fillLight.position.set(-3.5, 2.5, 2.5);
     scene.add(fillLight);
 
-    // Top Rim Light (defines silhouette)
     const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
     rimLight.position.set(0, 4, -3);
     scene.add(rimLight);
 
-    // Bottom Bounce Light (soft bounce on underside of chin)
     const bounceLight = new THREE.DirectionalLight(0xb0b5c0, 0.6);
     bounceLight.position.set(0, -3, 2);
     scene.add(bounceLight);
@@ -88,7 +82,6 @@ export const RobotHero: React.FC = () => {
       metalness: 0.04,
     });
 
-    // Torso / Shoulders with natural anatomical slope
     const torsoGeo = new THREE.CylinderGeometry(0.72, 0.98, 1.35, 48);
     torsoGeo.scale(1.4, 1, 0.78);
     const torsoMesh = new THREE.Mesh(torsoGeo, turtleneckMat);
@@ -97,7 +90,6 @@ export const RobotHero: React.FC = () => {
     torsoMesh.castShadow = true;
     characterGroup.add(torsoMesh);
 
-    // Ribbed Turtleneck Collar (tall folded neck)
     const collarGroup = new THREE.Group();
     collarGroup.position.set(0, 0.15, 0);
     characterGroup.add(collarGroup);
@@ -107,7 +99,6 @@ export const RobotHero: React.FC = () => {
     neckCollarMesh.castShadow = true;
     collarGroup.add(neckCollarMesh);
 
-    // Ribbed knit ring bands
     for (let i = 0; i < 4; i++) {
       const ringGeo = new THREE.TorusGeometry(0.355 + i * 0.005, 0.035, 12, 36);
       ringGeo.rotateX(Math.PI / 2);
@@ -116,14 +107,12 @@ export const RobotHero: React.FC = () => {
       collarGroup.add(ringMesh);
     }
 
-    // Top Collar Fold Overhang
     const foldGeo = new THREE.TorusGeometry(0.37, 0.065, 16, 40);
     foldGeo.rotateX(Math.PI / 2);
     const foldMesh = new THREE.Mesh(foldGeo, turtleneckMat);
     foldMesh.position.set(0, 0.22, 0);
     collarGroup.add(foldMesh);
 
-    // Articulated Biomechanical Neck Cylinder
     const neckInnerMat = new THREE.MeshStandardMaterial({
       color: 0x1c1e24,
       roughness: 0.25,
@@ -141,7 +130,6 @@ export const RobotHero: React.FC = () => {
     headGroup.position.set(0, 0.78, 0);
     characterGroup.add(headGroup);
 
-    // Monitor Outer Casing (Rounded Chamfer Box)
     const monitorMat = new THREE.MeshStandardMaterial({
       color: 0x25272e,
       roughness: 0.38,
@@ -154,7 +142,6 @@ export const RobotHero: React.FC = () => {
     casingMesh.receiveShadow = true;
     headGroup.add(casingMesh);
 
-    // Front Silver Bezel Accent Frame (Locomotive Lisa signature border)
     const frameMat = new THREE.MeshStandardMaterial({
       color: 0x6e727c,
       roughness: 0.25,
@@ -165,7 +152,6 @@ export const RobotHero: React.FC = () => {
     frameMesh.position.set(0, 0.01, 0.49);
     headGroup.add(frameMesh);
 
-    // Inset Front Screen Bezel (Dark Matte Charcoal)
     const bezelMat = new THREE.MeshStandardMaterial({
       color: 0x14151a,
       roughness: 0.55,
@@ -176,7 +162,6 @@ export const RobotHero: React.FC = () => {
     bezelMesh.position.set(0, 0.02, 0.52);
     headGroup.add(bezelMesh);
 
-    // Convex CRT Glass Screen (Deep glossy glass with specular reflection)
     const screenMat = new THREE.MeshPhysicalMaterial({
       color: 0x08090d,
       roughness: 0.1,
@@ -189,7 +174,6 @@ export const RobotHero: React.FC = () => {
     screenMesh.position.set(0, 0.06, 0.55);
     headGroup.add(screenMesh);
 
-    // Lower Front Panel Controls (Row of round vent / LED dots)
     const ledMat = new THREE.MeshStandardMaterial({
       color: 0x5a5d68,
       roughness: 0.3,
@@ -203,7 +187,6 @@ export const RobotHero: React.FC = () => {
       headGroup.add(dotMesh);
     }
 
-    // Rotary dial knob on left of control panel
     const dialMat = new THREE.MeshStandardMaterial({
       color: 0x3d4048,
       roughness: 0.2,
@@ -216,20 +199,18 @@ export const RobotHero: React.FC = () => {
     headGroup.add(dialMesh);
 
     // ─────────────────────────────────────────────────────────────
-    // 5. Signature Glowing Phosphor CRT Eyes (LISA Style)
+    // 5. Signature Glowing Phosphor CRT Eyes
     // ─────────────────────────────────────────────────────────────
     const eyesGroup = new THREE.Group();
     eyesGroup.position.set(0, 0.08, 0.58);
     headGroup.add(eyesGroup);
 
-    // Custom Canvas Texture with bright round phosphor glow & scanlines
     const createEyeTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 256;
       canvas.height = 256;
       const ctx = canvas.getContext('2d')!;
 
-      // Glowing circular core with soft diffuse halo
       const grad = ctx.createRadialGradient(128, 128, 16, 128, 128, 118);
       grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
       grad.addColorStop(0.25, 'rgba(255, 250, 235, 0.98)');
@@ -242,20 +223,17 @@ export const RobotHero: React.FC = () => {
       ctx.arc(128, 128, 118, 0, Math.PI * 2);
       ctx.fill();
 
-      // CRT Scanline raster effect
       ctx.fillStyle = 'rgba(10, 12, 16, 0.18)';
       for (let y = 0; y < 256; y += 5) {
         ctx.fillRect(0, y, 256, 2);
       }
 
-      // Subtle phosphor mesh texture
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       for (let x = 0; x < 256; x += 6) {
         ctx.fillRect(x, 0, 2, 256);
       }
 
-      const tex = new THREE.CanvasTexture(canvas);
-      return tex;
+      return new THREE.CanvasTexture(canvas);
     };
 
     const eyeTexture = createEyeTexture();
@@ -268,17 +246,14 @@ export const RobotHero: React.FC = () => {
 
     const eyeGeo = new THREE.PlaneGeometry(0.3, 0.3);
 
-    // Left Eye
     const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
     leftEye.position.set(-0.22, 0, 0);
     eyesGroup.add(leftEye);
 
-    // Right Eye
     const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
     rightEye.position.set(0.22, 0, 0);
     eyesGroup.add(rightEye);
 
-    // Soft Point Light emitted from eyes onto face frame
     const screenGlowLight = new THREE.PointLight(0xfff0dd, 1.6, 1.8);
     screenGlowLight.position.set(0, 0.1, 0.85);
     headGroup.add(screenGlowLight);
@@ -307,13 +282,11 @@ export const RobotHero: React.FC = () => {
       headGroup.add(jackMesh);
     };
 
-    // Jack sockets on left and right monitor walls
     createJack(-0.64, -0.22, 0.2, 0);
     createJack(-0.64, -0.34, 0.28, 0);
     createJack(0.64, -0.22, 0.2, 0);
     createJack(0.64, -0.34, 0.28, 0);
 
-    // Bottom jacks
     createJack(-0.25, -0.56, 0.2, Math.PI / 2);
     createJack(0.25, -0.56, 0.2, Math.PI / 2);
 
@@ -335,37 +308,40 @@ export const RobotHero: React.FC = () => {
       return new THREE.Mesh(tubeGeo, cableMat);
     };
 
-    // Left cables drooping into sweater
     headGroup.add(createCable([-0.65, -0.22, 0.2], [-0.32, -0.72, 0.18], 0.22));
     headGroup.add(createCable([-0.65, -0.34, 0.28], [-0.22, -0.74, 0.26], 0.18));
-
-    // Right cables drooping into sweater
     headGroup.add(createCable([0.65, -0.22, 0.2], [0.32, -0.72, 0.18], 0.22));
     headGroup.add(createCable([0.65, -0.34, 0.28], [0.22, -0.74, 0.26], 0.18));
-
-    // Bottom cables
     headGroup.add(createCable([-0.25, -0.56, 0.2], [-0.12, -0.78, 0.22], 0.14));
     headGroup.add(createCable([0.25, -0.56, 0.2], [0.12, -0.78, 0.22], 0.14));
 
     // ─────────────────────────────────────────────────────────────
-    // 7. Interactive Cursor Tracking (Smooth Lerp + Gaze)
+    // 7. Dynamic Cursor & Touch Tracking
     // ─────────────────────────────────────────────────────────────
     const mouse = { x: 0, y: 0 };
     const target = { x: 0, y: 0 };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const updateCoords = (clientX: number, clientY: number) => {
       const rect = container.getBoundingClientRect();
-      const clientX = e.clientX - rect.left;
-      const clientY = e.clientY - rect.top;
-
-      mouse.x = (clientX / rect.width) * 2 - 1;
-      mouse.y = -(clientY / rect.height) * 2 + 1;
+      mouse.x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
+      mouse.y = Math.max(-1, Math.min(1, -(((clientY - rect.top) / rect.height) * 2 - 1)));
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleMouseMove = (e: MouseEvent) => {
+      updateCoords(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     // ─────────────────────────────────────────────────────────────
-    // 8. Animation Loop (Breathing + Blinking + Inertia Tilt)
+    // 8. Animation Loop
     // ─────────────────────────────────────────────────────────────
     const clock = new THREE.Clock();
     let blinkTimer = 0;
@@ -378,27 +354,31 @@ export const RobotHero: React.FC = () => {
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Smooth interpolation towards mouse position
-      target.x += (mouse.x - target.x) * 0.075;
-      target.y += (mouse.y - target.y) * 0.075;
+      // Smooth interpolation towards target position
+      target.x += (mouse.x - target.x) * 0.08;
+      target.y += (mouse.y - target.y) * 0.08;
+
+      // Natural idle movement if stationary
+      const idleSwayX = Math.sin(elapsed * 0.8) * 0.08;
+      const idleSwayY = Math.cos(elapsed * 0.6) * 0.05;
 
       // Head tilts and turns smoothly
-      headGroup.rotation.y = target.x * 0.68;
-      headGroup.rotation.x = -target.y * 0.38 + 0.04;
-      headGroup.rotation.z = -target.x * 0.1;
+      headGroup.rotation.y = (target.x + idleSwayX) * 0.65;
+      headGroup.rotation.x = (-target.y + idleSwayY) * 0.35 + 0.04;
+      headGroup.rotation.z = -target.x * 0.08;
 
-      // Eyes look further towards the cursor (gaze tracking)
+      // Eyes look towards target (gaze tracking)
       eyesGroup.position.x = target.x * 0.08;
       eyesGroup.position.y = 0.08 + target.y * 0.05;
 
-      // Natural breathing displacement on torso & collar
+      // Natural breathing displacement on torso
       const breath = Math.sin(elapsed * 1.6) * 0.016;
       characterGroup.position.y = -0.68 + breath;
       torsoMesh.scale.x = 1.4 + breath * 0.15;
 
       // Natural eye blinking
       blinkTimer += delta;
-      if (!isBlinking && blinkTimer > 4.0 + Math.random() * 2.5) {
+      if (!isBlinking && blinkTimer > 3.8 + Math.random() * 2.5) {
         isBlinking = true;
         blinkTimer = 0;
       }
@@ -424,6 +404,8 @@ export const RobotHero: React.FC = () => {
       if (!container) return;
       width = container.clientWidth;
       height = container.clientHeight;
+      if (width === 0 || height === 0) return;
+
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
@@ -434,6 +416,7 @@ export const RobotHero: React.FC = () => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
@@ -449,7 +432,7 @@ export const RobotHero: React.FC = () => {
         style={{
           width: '100%',
           height: '100%',
-          minHeight: 260,
+          minHeight: 220,
           display: 'grid',
           placeItems: 'center',
           color: '#f5f7fa',
@@ -473,6 +456,7 @@ export const RobotHero: React.FC = () => {
         height: '100%',
         position: 'relative',
         cursor: 'crosshair',
+        touchAction: 'none',
       }}
     />
   );

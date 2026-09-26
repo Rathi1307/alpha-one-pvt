@@ -23,6 +23,7 @@ import {
   Award,
   ChevronDown,
   ArrowRight,
+  Radio,
 } from 'lucide-react';
 
 const LinkedinIcon: React.FC<{ size?: number; color?: string }> = ({ size = 18, color = '#0a66c2' }) => (
@@ -65,11 +66,24 @@ export const App: React.FC = () => {
   const [playerColor,  setPlayerColor]  = useState<'white' | 'black' | 'both' | 'ai'>('white');
   const [searchDepth,  setSearchDepth]  = useState(4);
   const [soundActive,  setSoundActive]  = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const stateRef    = useRef(engineState);
   stateRef.current  = engineState;
   const thinkingRef = useRef(isThinking);
   thinkingRef.current = isThinking;
+
+  // Track dynamic scroll progress
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalScroll > 0) {
+        setScrollProgress((window.scrollY / totalScroll) * 100);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     engineService.onStateChange((s) => {
@@ -196,32 +210,28 @@ export const App: React.FC = () => {
     cap?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const isWhiteTurn = engineState.isWhiteToMove;
+  const isOpponentTurn = playerColor === 'black' ? isWhiteTurn : !isWhiteTurn;
+  const isUserTurn = !isOpponentTurn;
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-studio-dark)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-studio-dark)', color: '#fff', overflowX: 'hidden' }}>
+      {/* Dynamic Scroll Progress Bar */}
+      <div className="scroll-progress-bar" style={{ width: `${scrollProgress}%` }} />
+
       {/* ====================================================================
-          1. TOP NAVIGATION BAR (Locomotive Agency Minimalist)
+          1. DYNAMIC TOP NAVIGATION BAR
           ==================================================================== */}
-      <header
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '22px 36px',
-          background: 'linear-gradient(to bottom, rgba(10,11,14,0.75) 0%, rgba(10,11,14,0) 100%)',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <header className="app-header">
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
           <span
             style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 800,
-              fontSize: 18,
+              fontSize: 'clamp(16px, 1.8vw, 19px)',
               letterSpacing: '-0.03em',
               color: '#0e0f13',
               mixBlendMode: 'difference',
@@ -231,22 +241,25 @@ export const App: React.FC = () => {
           </span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 10.5,
               fontFamily: 'var(--font-mono)',
               color: '#888',
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
+              border: '1px solid rgba(255,255,255,0.12)',
+              padding: '2px 6px',
+              borderRadius: 4,
             }}
           >
             C++17 / WASM
           </span>
         </div>
 
-        {/* Center Minimal Geometric Brand Mark */}
+        {/* Center Minimal Geometric Brand Mark (Desktop) */}
         <div
           style={{
-            width: 24,
-            height: 24,
+            width: 26,
+            height: 26,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -255,7 +268,7 @@ export const App: React.FC = () => {
             cursor: 'pointer',
           }}
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          title="AlphaOne"
+          title="AlphaOne Home"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="9" />
@@ -263,8 +276,8 @@ export const App: React.FC = () => {
           </svg>
         </div>
 
-        {/* Right Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        {/* Right Navigation Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 1.5vw, 16px)' }}>
           <button
             onClick={scrollToCapabilities}
             style={{
@@ -272,83 +285,75 @@ export const App: React.FC = () => {
               border: 'none',
               color: '#111',
               fontFamily: 'var(--font-sans)',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 600,
               letterSpacing: '-0.01em',
               cursor: 'pointer',
               mixBlendMode: 'difference',
+              padding: '6px 8px',
             }}
           >
             Capabilities
           </button>
           <button onClick={scrollToArena} className="loco-pill">
-            <span>Play Engine</span>
-            <ArrowRight size={14} />
+            <span>Play Arena</span>
+            <ArrowRight size={13} />
           </button>
         </div>
       </header>
 
       {/* ====================================================================
-          2. HERO SECTION (Locomotive Lisa Inspired 3D Studio)
+          2. HERO SECTION (Dynamic 3D Character Studio)
           ==================================================================== */}
-      <section
-        id="hero-section"
-        style={{
-          position: 'relative',
-          width: '100vw',
-          height: '100vh',
-          minHeight: 700,
-          display: 'flex',
-          alignItems: 'center',
-          background: 'radial-gradient(ellipse at 50% 36%, #eaebee 0%, #c8c9ce 45%, #97989f 100%)',
-          overflow: 'hidden',
-          padding: '0 48px',
-        }}
-      >
+      <section id="hero-section" className="hero-container">
         {/* Studio Lighting Vignette */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'radial-gradient(circle at 50% 90%, rgba(0,0,0,0.35) 0%, transparent 65%)',
+            background: 'radial-gradient(circle at 50% 90%, rgba(0,0,0,0.38) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
 
         {/* Left Column: Typography & Interactive Badges */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 10,
-            maxWidth: 620,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 22,
-            paddingBottom: 40,
-          }}
-        >
+        <div className="hero-left-col">
           {/* Greeting Eyebrow */}
           <div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 99,
+                backgroundColor: 'rgba(14, 15, 19, 0.08)',
+                marginBottom: 10,
+              }}
+            >
+              <Radio size={12} color="#0e0f13" />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: '#0e0f13' }}>
+                LIVE ENGINE STUDIO
+              </span>
+            </div>
             <p
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontSize: 14,
-                color: '#50525b',
+                fontSize: 'clamp(13px, 1.2vw, 15px)',
+                color: '#464852',
                 lineHeight: 1.5,
                 fontWeight: 500,
               }}
             >
-              Hi there, I am AlphaOne,
-              <br />
-              Locomotive-inspired low latency chess intelligence.
+              Hi there, I am AlphaOne — low latency chess intelligence.
             </p>
           </div>
 
-          {/* Main Title (Corrected Spelling & Formatting) */}
+          {/* Main Title */}
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(28px, 3.4vw, 46px)',
+              fontSize: 'clamp(26px, 3.8vw, 48px)',
               fontWeight: 700,
               lineHeight: 1.15,
               letterSpacing: '-0.035em',
@@ -360,7 +365,7 @@ export const App: React.FC = () => {
           </h1>
 
           {/* Interactive Capability Pills */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+          <div className="hero-pills-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
             <button onClick={scrollToArena} className="loco-pill">
               <Sparkles size={13} />
               Launch Arena
@@ -384,39 +389,29 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column / Center: 3D Robot Head with Human Body */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: 'clamp(550px, 60vw, 920px)',
-            height: '100%',
-            pointerEvents: 'auto',
-          }}
-        >
+        {/* 3D Robot Head Assembly */}
+        <div className="hero-robot-wrapper">
           <RobotHero />
         </div>
 
-        {/* Bottom Left: Reset / Interactive Hint */}
+        {/* Dynamic Sound & Reset Floats */}
         <div
           style={{
             position: 'absolute',
-            bottom: 32,
-            left: 48,
+            bottom: 20,
+            left: 'var(--gutter-x)',
             zIndex: 20,
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            gap: 10,
           }}
         >
           <button
             onClick={() => window.location.reload()}
             title="Reload Experience"
             style={{
-              width: 38,
-              height: 38,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
               backgroundColor: '#0e0f13',
               color: '#fff',
@@ -431,46 +426,22 @@ export const App: React.FC = () => {
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'rotate(-90deg) scale(1.08)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'rotate(0deg) scale(1)')}
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={14} />
           </button>
 
-          <span
-            style={{
-              fontSize: 12,
-              fontFamily: 'var(--font-mono)',
-              color: '#383a42',
-              fontWeight: 500,
-            }}
-          >
-            Hover anywhere to tilt & observe head tracking
-          </span>
-        </div>
-
-        {/* Bottom Right: Audio Toggle Pill */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 32,
-            right: 48,
-            zIndex: 20,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
           <button
             onClick={handleSoundToggle}
-            title={soundActive ? 'Mute Audio Effects' : 'Enable Tactile Audio Effects'}
+            title={soundActive ? 'Mute Audio' : 'Enable Audio'}
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '8px 18px',
+              gap: 6,
+              padding: '7px 14px',
               borderRadius: 9999,
               backgroundColor: '#0e0f13',
               color: '#fff',
               border: 'none',
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 600,
               fontFamily: 'var(--font-sans)',
               cursor: 'pointer',
@@ -478,22 +449,20 @@ export const App: React.FC = () => {
               transition: 'all 0.2s ease',
             }}
           >
-            {soundActive ? <Volume2 size={15} /> : <VolumeX size={15} />}
-            <span>{soundActive ? 'Audio: ON' : 'Audio: MUTE'}</span>
+            {soundActive ? <Volume2 size={13} /> : <VolumeX size={13} />}
+            <span>{soundActive ? 'Audio ON' : 'MUTE'}</span>
           </button>
         </div>
 
-        {/* Scroll Cue Indicator */}
+        {/* Scroll Indicator */}
         <div
           onClick={scrollToCapabilities}
           style={{
             position: 'absolute',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            bottom: 18,
+            right: 'var(--gutter-x)',
             zIndex: 20,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             gap: 4,
             cursor: 'pointer',
@@ -501,10 +470,10 @@ export const App: React.FC = () => {
             transition: 'opacity 0.2s ease',
           }}
         >
-          <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#25262c', fontWeight: 600 }}>
-            SCROLL TO EXPLORE
+          <span style={{ fontSize: 10.5, fontFamily: 'var(--font-mono)', color: '#25262c', fontWeight: 700 }}>
+            EXPLORE
           </span>
-          <ChevronDown size={16} color="#25262c" className="pulse-soft" />
+          <ChevronDown size={14} color="#25262c" className="pulse-soft" />
         </div>
       </section>
 
@@ -514,21 +483,22 @@ export const App: React.FC = () => {
       <section
         id="capabilities-section"
         style={{
-          padding: '120px 48px 100px',
-          maxWidth: 1280,
+          padding: 'clamp(60px, 8vw, 110px) var(--gutter-x)',
+          maxWidth: 'var(--container-max-w)',
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 60,
+          gap: 'clamp(36px, 5vw, 60px)',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <span
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontFamily: 'var(--font-mono)',
-              color: '#8b8e99',
+              color: 'var(--accent-cyan)',
               letterSpacing: '0.12em',
+              fontWeight: 700,
             }}
           >
             01 / ARCHITECTURE & METRICS
@@ -536,7 +506,7 @@ export const App: React.FC = () => {
           <h2
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(26px, 3.2vw, 44px)',
+              fontSize: 'clamp(24px, 3.2vw, 42px)',
               fontWeight: 700,
               letterSpacing: '-0.03em',
               color: '#f4f4f7',
@@ -545,38 +515,33 @@ export const App: React.FC = () => {
           >
             High-Performance C++17 Core Compiled to WebAssembly
           </h2>
-          <p style={{ fontSize: 15, color: '#888b96', maxWidth: 640, lineHeight: 1.6 }}>
-            AlphaOne completely removes legacy Python and Pygame runtimes in favor of bitboard move generation,
-            iterative deepening alpha-beta pruning, and Zobrist transposition memoization.
+          <p style={{ fontSize: 'clamp(13.5px, 1.2vw, 15px)', color: '#888b96', maxWidth: 640, lineHeight: 1.6 }}>
+            AlphaOne provides pure low-latency client-side computation with bitboard move generation,
+            iterative deepening alpha-beta pruning, and 64-bit Zobrist transposition memoization.
           </p>
         </div>
 
         {/* Bento Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: 20,
-          }}
-        >
+        <div className="capabilities-grid">
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                  border: '1px solid rgba(0, 242, 254, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Zap size={18} color="#fff" />
+                <Zap size={18} color="var(--accent-cyan)" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>THROUGHPUT</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>THROUGHPUT</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               1,000,000+ NPS
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -586,23 +551,24 @@ export const App: React.FC = () => {
           </div>
 
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Activity size={18} color="#fff" />
+                <Activity size={18} color="var(--accent-emerald)" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>LATENCY</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>LATENCY</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               Sub-5ms Tactical Replies
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -612,23 +578,24 @@ export const App: React.FC = () => {
           </div>
 
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Award size={18} color="#fff" />
+                <Award size={18} color="var(--accent-amber)" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>RATING</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>RATING</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               ELO ~1500 Positional Search
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -638,23 +605,24 @@ export const App: React.FC = () => {
           </div>
 
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Layers size={18} color="#fff" />
+                <Layers size={18} color="var(--accent-blue)" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CACHE</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CACHE</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               64-bit Zobrist Memoization
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -664,13 +632,13 @@ export const App: React.FC = () => {
           </div>
 
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -678,9 +646,9 @@ export const App: React.FC = () => {
               >
                 <Shield size={18} color="#fff" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CLIENT-SIDE</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CLIENT-SIDE</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               100% Offline WebAssembly
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -690,13 +658,13 @@ export const App: React.FC = () => {
           </div>
 
           <div className="studio-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -704,9 +672,9 @@ export const App: React.FC = () => {
               >
                 <Terminal size={18} color="#fff" />
               </div>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CROSS-PLATFORM</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#8b8e99' }}>CROSS-PLATFORM</span>
             </div>
-            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 'clamp(20px, 1.8vw, 24px)', fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em' }}>
               Standalone Native CLI
             </h3>
             <p style={{ fontSize: 13, color: '#9da0aa', lineHeight: 1.6 }}>
@@ -723,23 +691,24 @@ export const App: React.FC = () => {
       <section
         id="arena-section"
         style={{
-          padding: '80px 36px 140px',
-          maxWidth: 1320,
+          padding: 'clamp(40px, 6vw, 80px) var(--gutter-x) clamp(60px, 10vw, 120px)',
+          maxWidth: 'var(--container-max-w)',
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 36,
+          gap: 'clamp(24px, 3.5vw, 36px)',
         }}
       >
         {/* Section Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <span
               style={{
-                fontSize: 12,
+                fontSize: 11,
                 fontFamily: 'var(--font-mono)',
-                color: '#8b8e99',
+                color: 'var(--accent-cyan)',
                 letterSpacing: '0.12em',
+                fontWeight: 700,
               }}
             >
               02 / THE ARENA
@@ -747,80 +716,76 @@ export const App: React.FC = () => {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(28px, 3.4vw, 42px)',
+                fontSize: 'clamp(24px, 3.2vw, 40px)',
                 fontWeight: 700,
                 letterSpacing: '-0.03em',
                 color: '#fff',
-                marginTop: 6,
+                marginTop: 4,
               }}
             >
               Play Against AlphaOne
             </h2>
           </div>
 
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={handleNewGame} className="loco-pill-dark">
-              <RotateCcw size={14} />
-              Reset Game
+              <RotateCcw size={13} />
+              <span>Reset Game</span>
             </button>
             <button onClick={() => setIsFlipped((prev) => !prev)} className="loco-pill-dark">
-              Flip Board
+              <span>Flip Board</span>
             </button>
           </div>
         </div>
 
-        {/* Main Chess Arena Grid (Balanced 2-Column Boxing) */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1.15fr) minmax(360px, 0.85fr)',
-            gap: 28,
-            alignItems: 'start',
-          }}
-        >
+        {/* Main Chess Arena Responsive Grid */}
+        <div className="arena-grid">
           {/* Left Column: Board Container Box */}
           <div
             className="card"
             style={{
-              padding: 20,
+              padding: 'clamp(12px, 2vw, 20px)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 14,
+              gap: 'clamp(10px, 1.5vw, 14px)',
               backgroundColor: 'var(--bg-card)',
             }}
           >
             {/* Top Opponent Player Badge */}
             <div
+              className={`player-badge ${isOpponentTurn ? 'player-active-card' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 16px',
+                padding: 'clamp(8px, 1.2vw, 12px) clamp(10px, 1.5vw, 16px)',
                 borderRadius: 10,
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid var(--border-subtle)',
+                transition: 'all 0.25s ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div
                   style={{
-                    width: 34,
-                    height: 34,
+                    width: 32,
+                    height: 32,
                     borderRadius: 8,
                     background: '#1d1f26',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 16,
+                    fontSize: 15,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}
                 >
                   🤖
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                  <div style={{ fontSize: 'clamp(12px, 1.1vw, 13.5px)', fontWeight: 700 }}>
                     {playerColor === 'black' ? 'You (Black)' : 'AlphaOne AI'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#888' }}>
+                  <div style={{ fontSize: 10.5, color: '#888' }}>
                     {playerColor === 'black' ? 'Human Player' : `Depth ${searchDepth} (ELO ~1500)`}
                   </div>
                 </div>
@@ -828,15 +793,8 @@ export const App: React.FC = () => {
               <CapturedPieces fen={engineState.fen} />
             </div>
 
-            {/* Board + Integrated Evaluation Bar */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 12,
-                alignItems: 'stretch',
-                justifyContent: 'center',
-              }}
-            >
+            {/* Board + Integrated Dynamic Evaluation Bar */}
+            <div className="board-eval-container">
               <EvaluationBar score={engineState.evaluation} isWhiteBottom={!isFlipped} />
               <Chessboard
                 fen={engineState.fen}
@@ -857,47 +815,49 @@ export const App: React.FC = () => {
 
             {/* Bottom Player Badge */}
             <div
+              className={`player-badge ${isUserTurn ? 'player-active-card' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 16px',
+                padding: 'clamp(8px, 1.2vw, 12px) clamp(10px, 1.5vw, 16px)',
                 borderRadius: 10,
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid var(--border-subtle)',
+                transition: 'all 0.25s ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div
                   style={{
-                    width: 34,
-                    height: 34,
+                    width: 32,
+                    height: 32,
                     borderRadius: 8,
                     background: '#f2f3f5',
                     color: '#111',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 16,
+                    fontSize: 15,
                   }}
                 >
                   👤
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                  <div style={{ fontSize: 'clamp(12px, 1.1vw, 13.5px)', fontWeight: 700 }}>
                     {playerColor === 'black' ? 'AlphaOne AI' : 'You (White)'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#888' }}>
-                    {engineState.isWhiteToMove ? 'Active Turn' : 'Waiting'}
+                  <div style={{ fontSize: 10.5, color: isUserTurn ? 'var(--accent-emerald)' : '#888', fontWeight: isUserTurn ? 700 : 400 }}>
+                    {isUserTurn ? 'Active Turn' : 'Waiting'}
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#888' }}>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#888' }}>
                 Move #{movesHistory.length}
               </div>
             </div>
 
-            {/* Game Alerts */}
+            {/* Dynamic Game Alerts */}
             {engineState.isCheckmate && (
               <div
                 style={{
@@ -909,6 +869,7 @@ export const App: React.FC = () => {
                   fontWeight: 700,
                   fontSize: 13,
                   textAlign: 'center',
+                  boxShadow: '0 0 16px rgba(239, 68, 68, 0.3)',
                 }}
               >
                 Checkmate! {engineState.isWhiteToMove ? 'Black' : 'White'} wins the game!
@@ -925,15 +886,32 @@ export const App: React.FC = () => {
                   fontWeight: 700,
                   fontSize: 13,
                   textAlign: 'center',
+                  boxShadow: '0 0 16px rgba(245, 158, 11, 0.3)',
                 }}
               >
                 Stalemate! Draw by lack of legal moves.
               </div>
             )}
+            {engineState.inCheck && !engineState.isCheckmate && (
+              <div
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                  border: '1px solid rgba(244, 63, 94, 0.3)',
+                  color: 'var(--accent-rose)',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  textAlign: 'center',
+                }}
+              >
+                ⚠️ Check! {engineState.isWhiteToMove ? 'White' : 'Black'} King is under attack.
+              </div>
+            )}
           </div>
 
           {/* Right Column: Engine Console Boxes */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 2vw, 20px)' }}>
             <EngineStats stats={stats} isThinking={isThinking} />
 
             <GameControls
@@ -955,15 +933,15 @@ export const App: React.FC = () => {
       </section>
 
       {/* ====================================================================
-          5. FOOTER
+          5. DYNAMIC FOOTER
           ==================================================================== */}
       <footer
         style={{
           borderTop: '1px solid rgba(255,255,255,0.08)',
-          padding: '48px 48px 40px',
+          padding: 'clamp(36px, 5vw, 48px) var(--gutter-x) clamp(28px, 4vw, 40px)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 32,
+          gap: 28,
           color: '#777a84',
           fontSize: 13,
           backgroundColor: '#0a0b0e',
@@ -974,8 +952,8 @@ export const App: React.FC = () => {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 16,
-            paddingBottom: 28,
+            gap: 14,
+            paddingBottom: 24,
             borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}
         >
@@ -999,7 +977,7 @@ export const App: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: 14,
+              gap: 12,
             }}
           >
             <a
@@ -1007,22 +985,8 @@ export const App: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="developer-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 18px',
-                borderRadius: 8,
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#f4f5f8',
-                textDecoration: 'none',
-                fontSize: 14,
-                fontWeight: 600,
-                transition: 'all 0.2s ease',
-              }}
             >
-              <LinkedinIcon size={18} color="#0a66c2" />
+              <LinkedinIcon size={17} color="#0a66c2" />
               <span>Naman Ostwal</span>
             </a>
 
@@ -1031,43 +995,21 @@ export const App: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="developer-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 18px',
-                borderRadius: 8,
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#f4f5f8',
-                textDecoration: 'none',
-                fontSize: 14,
-                fontWeight: 600,
-                transition: 'all 0.2s ease',
-              }}
             >
-              <LinkedinIcon size={18} color="#0a66c2" />
+              <LinkedinIcon size={17} color="#0a66c2" />
               <span>Puneet Rathi</span>
             </a>
           </div>
         </div>
 
         {/* Bottom meta info */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 20,
-          }}
-        >
+        <div className="footer-inner">
           <div>
             <span style={{ fontWeight: 700, color: '#d1d4dc' }}>AlphaOne Chess Engine</span>
             {' — '}
             Modern C++17 ported to WebAssembly
           </div>
-          <div style={{ display: 'flex', gap: 20 }}>
+          <div style={{ display: 'flex', gap: 'clamp(10px, 2vw, 20px)', flexWrap: 'wrap', fontSize: 12 }}>
             <span>100% Client-Side Compute</span>
             <span>Zero Server Latency</span>
             <span>Zero Pygame Dependency</span>

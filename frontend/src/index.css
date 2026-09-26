@@ -1,5 +1,6 @@
 /* ===================================================================
    AlphaOne Chess Engine — Locomotive Grey-Black-White Studio System
+   Dynamic & Fully Responsive Design System for All Screen Sizes
    =================================================================== */
 
 :root {
@@ -12,7 +13,7 @@
   --bg-card-hover:   #1d2028;
   --bg-input:        #1d2027;
 
-  /* === Monochromatic Accents === */
+  /* === Monochromatic & Dynamic Accents === */
   --accent-white:    #ffffff;
   --accent-platinum: #ececec;
   --accent-silver:   #a3a4ab;
@@ -23,6 +24,7 @@
   --accent-emerald:  #10b981;
   --accent-rose:     #f43f5e;
   --accent-amber:    #f59e0b;
+  --accent-glow:     rgba(0, 242, 254, 0.15);
 
   /* === High-contrast Text === */
   --text-primary:    #f4f5f8;
@@ -32,18 +34,23 @@
 
   /* === Borders === */
   --border-subtle:   rgba(255, 255, 255, 0.08);
-  --border-default:  rgba(255, 255, 255, 0.12);
-  --border-active:   rgba(255, 255, 255, 0.28);
+  --border-default:  rgba(255, 255, 255, 0.14);
+  --border-active:   rgba(255, 255, 255, 0.32);
 
   /* === Shadows === */
   --shadow-studio:   0 30px 80px -20px rgba(0, 0, 0, 0.35);
   --shadow-card:     0 12px 32px -8px rgba(0, 0, 0, 0.65);
   --shadow-subtle:   0 2px 10px rgba(0, 0, 0, 0.15);
+  --shadow-glow:     0 0 20px rgba(0, 242, 254, 0.25);
 
   /* === Typography === */
   --font-display: 'Space Grotesk', 'Plus Jakarta Sans', -apple-system, sans-serif;
   --font-sans:    'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
+
+  /* === Fluid Spacing Variables === */
+  --container-max-w: 1360px;
+  --gutter-x: clamp(16px, 4vw, 48px);
 }
 
 *, *::before, *::after {
@@ -57,6 +64,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 body {
@@ -65,9 +73,11 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
+  width: 100%;
+  position: relative;
 }
 
-/* Custom Locomotive Scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -84,6 +94,18 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #444754;
+}
+
+/* Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #00f2fe, #3b82f6, #10b981);
+  z-index: 999;
+  transition: width 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
 }
 
 /* Terminal Blinking Cursor */
@@ -105,11 +127,12 @@ body {
 .loco-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 9px 20px;
+  padding: 9px 18px;
   border-radius: 9999px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: clamp(11.5px, 1.1vw, 13px);
   font-weight: 600;
   letter-spacing: -0.01em;
   background-color: #ffffff;
@@ -120,6 +143,7 @@ body {
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   user-select: none;
+  white-space: nowrap;
 }
 
 .loco-pill:hover {
@@ -129,16 +153,21 @@ body {
   border-color: rgba(0, 0, 0, 0.25);
 }
 
+.loco-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .loco-pill-dark {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 9999px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: clamp(11.5px, 1.1vw, 13px);
   font-weight: 600;
-  background-color: rgba(25, 27, 33, 0.9);
+  background-color: rgba(25, 27, 33, 0.85);
   color: #e5e7eb;
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
@@ -147,6 +176,7 @@ body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   user-select: none;
+  white-space: nowrap;
 }
 
 .loco-pill-dark:hover {
@@ -156,8 +186,12 @@ body {
   transform: translateY(-1px);
 }
 
+.loco-pill-dark:active {
+  transform: translateY(0) scale(0.98);
+}
+
 /* ===================================================================
-   Console Bento Cards & Placement Styling
+   Responsive Card & Grid System
    =================================================================== */
 .card {
   background: var(--bg-card);
@@ -165,7 +199,8 @@ body {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow-card);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  width: 100%;
 }
 
 .card:hover {
@@ -176,23 +211,24 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
+  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 2vw, 18px);
   border-bottom: 1px solid var(--border-subtle);
   background: rgba(255, 255, 255, 0.015);
+  gap: 8px;
 }
 
 .card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: clamp(12px, 1.1vw, 13.5px);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .card-body {
-  padding: 16px 18px;
+  padding: clamp(12px, 2vw, 18px);
 }
 
 /* Stat Tiles */
@@ -200,33 +236,42 @@ body {
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: clamp(8px, 1.2vw, 10px) clamp(8px, 1.2vw, 12px);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
+  min-width: 0;
 }
 
 .stat-tile:hover {
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
 }
 
 .stat-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
+  gap: 5px;
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--text-muted);
   font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-value {
-  font-size: 15px;
+  font-size: clamp(13px, 1.2vw, 15.5px);
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Badges */
@@ -240,6 +285,7 @@ body {
   border-radius: 9999px;
   font-family: var(--font-mono);
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .badge-cyan {
@@ -282,15 +328,16 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 9px 14px;
+  padding: clamp(8px, 1.2vw, 10px) clamp(10px, 1.5vw, 14px);
   border-radius: 9px;
   font-family: var(--font-sans);
-  font-size: 12.5px;
+  font-size: clamp(11.5px, 1vw, 12.5px);
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
   transition: all 0.15s ease;
   user-select: none;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -303,6 +350,10 @@ body {
 .btn-primary:hover {
   background: #e8eaee;
   transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
@@ -320,6 +371,10 @@ body {
 .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--border-default);
+}
+
+.btn-ghost:active {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .btn-ghost:disabled {
@@ -350,13 +405,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 8px 6px;
+  padding: clamp(6px, 1vw, 8px) 4px;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  user-select: none;
+  min-width: 0;
 }
 
 .mode-btn:hover {
@@ -371,15 +428,15 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Move Log Row (Fixed Column Alignment) */
+/* Move Log Row */
 .move-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr;
+  grid-template-columns: 32px 1fr 1fr;
   align-items: center;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: clamp(11.5px, 1vw, 12.5px);
   transition: background-color 0.12s ease;
 }
 
@@ -416,22 +473,28 @@ input[type='range'] {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   outline: none;
+  touch-action: none;
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  transition: transform 0.1s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
 input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.2);
+}
+
+input[type='range']::-webkit-slider-thumb:active {
+  transform: scale(1.3);
+  background: #00f2fe;
 }
 
 /* Studio Bento Card */
@@ -440,7 +503,7 @@ input[type='range']::-webkit-slider-thumb:hover {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  padding: 26px;
+  padding: clamp(18px, 2.5vw, 26px);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -454,10 +517,233 @@ input[type='range']::-webkit-slider-thumb:hover {
   animation: pulseGlow 2.2s infinite ease-in-out;
 }
 
-/* Footer Developer Link */
+/* Player Active Pulse */
+@keyframes activeTurnGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 242, 254, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px rgba(0, 242, 254, 0.35);
+  }
+}
+
+.player-active-card {
+  border-color: rgba(0, 242, 254, 0.45) !important;
+  background: rgba(0, 242, 254, 0.04) !important;
+  animation: activeTurnGlow 2.5s infinite ease-in-out;
+}
+
+/* Developer Links */
+.developer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f4f5f8;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
 .developer-link:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(10, 102, 194, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.09);
+  border-color: rgba(10, 102, 194, 0.6);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(10, 102, 194, 0.25);
+  box-shadow: 0 6px 18px rgba(10, 102, 194, 0.3);
+}
+
+/* ===================================================================
+   Responsive Layout Classes & Dynamic Breakpoints
+   =================================================================== */
+
+/* Header */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px var(--gutter-x);
+  background: linear-gradient(to bottom, rgba(10,11,14,0.85) 0%, rgba(10,11,14,0.4) 80%, rgba(10,11,14,0) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: padding 0.2s ease, background-color 0.2s ease;
+}
+
+/* Hero Section */
+.hero-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: radial-gradient(ellipse at 50% 36%, #eaebee 0%, #c8c9ce 45%, #97989f 100%);
+  overflow: hidden;
+  padding: 90px var(--gutter-x) 60px;
+}
+
+.hero-left-col {
+  position: relative;
+  z-index: 10;
+  max-width: 620px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vw, 24px);
+}
+
+.hero-robot-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: clamp(380px, 56vw, 920px);
+  height: 100%;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+/* Arena Grid Container */
+.arena-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: clamp(16px, 2.5vw, 28px);
+  align-items: start;
+  width: 100%;
+}
+
+/* Board + Eval Container */
+.board-eval-container {
+  display: flex;
+  gap: clamp(8px, 1.5vw, 14px);
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+/* Capabilities Bento Grid */
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: clamp(14px, 2vw, 22px);
+  width: 100%;
+}
+
+/* Footer Responsive Layout */
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* ===================================================================
+   Media Queries for Tailored Responsiveness
+   =================================================================== */
+
+/* Tablets & Small Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .hero-container {
+    flex-direction: column-reverse;
+    justify-content: center;
+    padding-top: 100px;
+    padding-bottom: 70px;
+    min-height: auto;
+    gap: 20px;
+  }
+
+  .hero-left-col {
+    max-width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-left-col p,
+  .hero-left-col h1 {
+    text-align: center;
+  }
+
+  .hero-pills-row {
+    justify-content: center;
+  }
+
+  .hero-robot-wrapper {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    min-height: 340px;
+  }
+
+  .arena-grid {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile Devices (<= 768px) */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .hero-container {
+    padding: 84px 16px 50px;
+  }
+
+  .hero-robot-wrapper {
+    height: 300px;
+    min-height: 260px;
+  }
+
+  .arena-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card-header {
+    padding: 12px 14px;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Small Mobile (<= 480px) */
+@media (max-width: 480px) {
+  .hero-robot-wrapper {
+    height: 240px;
+    min-height: 220px;
+  }
+
+  .hero-left-col h1 {
+    font-size: 24px !important;
+  }
+
+  .loco-pill, .loco-pill-dark {
+    padding: 7px 12px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .board-eval-container {
+    gap: 6px;
+  }
 }

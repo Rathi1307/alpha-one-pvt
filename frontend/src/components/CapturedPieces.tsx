@@ -5,12 +5,6 @@ interface CapturedPiecesProps {
   playerColor?: 'white' | 'black';
 }
 
-// Unicode chess piece symbols
-const PIECE_UNICODE: Record<string, string> = {
-  P: '♙', N: '♘', B: '♗', R: '♖', Q: '♕',
-  p: '♟', n: '♞', b: '♝', r: '♜', q: '♛',
-};
-
 const PIECE_VALUES: Record<string, number> = {
   P: 1, N: 3, B: 3, R: 5, Q: 9,
   p: 1, n: 3, b: 3, r: 5, q: 9,
@@ -36,41 +30,45 @@ const CapturedRow: React.FC<CapturedRowProps> = ({
     style={{
       display: 'flex',
       alignItems: 'center',
-      gap: 4,
-      minHeight: 22,
+      flexWrap: 'wrap',
+      gap: 3,
+      minHeight: 20,
     }}
   >
-      {capturedByOpponent.map(({ type, count }) => {
-        const pieceCode = `${isWhite ? 'w' : 'b'}${type.toUpperCase() === 'P' ? 'p' : type.toUpperCase()}`;
-        return (
-          <div key={type} style={{ display: 'inline-flex', alignItems: 'center', marginLeft: -3 }}>
-            {Array.from({ length: count }).map((_, i) => (
-              <img
-                key={`${type}-${i}`}
-                src={`/pieces/${pieceCode}.png`}
-                alt={type}
-                draggable={false}
-                style={{
-                  width: 18,
-                  height: 18,
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
-                  marginLeft: i > 0 ? -8 : 0,
-                  userSelect: 'none',
-                }}
-              />
-            ))}
-          </div>
-        );
-      })}
+    {capturedByOpponent.map(({ type, count }) => {
+      const pieceCode = `${isWhite ? 'w' : 'b'}${type.toUpperCase() === 'P' ? 'p' : type.toUpperCase()}`;
+      return (
+        <div key={type} style={{ display: 'inline-flex', alignItems: 'center', marginLeft: -2 }}>
+          {Array.from({ length: count }).map((_, i) => (
+            <img
+              key={`${type}-${i}`}
+              src={`/pieces/${pieceCode}.png`}
+              alt={type}
+              draggable={false}
+              style={{
+                width: 17,
+                height: 17,
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
+                marginLeft: i > 0 ? -9 : 0,
+                userSelect: 'none',
+              }}
+            />
+          ))}
+        </div>
+      );
+    })}
     {materialAdvantage > 0 && (
       <span
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 11,
+          fontSize: 10.5,
           fontWeight: 700,
           color: 'var(--accent-emerald)',
           marginLeft: 4,
+          padding: '1px 5px',
+          borderRadius: 4,
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
         }}
       >
         +{materialAdvantage}
@@ -107,20 +105,26 @@ export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ fen }) => {
 
   const whiteLead = blackLoss - whiteLoss;
 
+  if (whiteCaptured.length === 0 && blackCaptured.length === 0) {
+    return null;
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-      {/* Captured by black (white pieces taken) */}
-      <CapturedRow
-        capturedByOpponent={whiteCaptured}
-        materialAdvantage={whiteLead < 0 ? Math.abs(whiteLead) : 0}
-        isWhite
-      />
-      {/* Captured by white (black pieces taken) */}
-      <CapturedRow
-        capturedByOpponent={blackCaptured}
-        materialAdvantage={whiteLead > 0 ? whiteLead : 0}
-        isWhite={false}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '100%' }}>
+      {whiteCaptured.length > 0 && (
+        <CapturedRow
+          capturedByOpponent={whiteCaptured}
+          materialAdvantage={whiteLead < 0 ? Math.abs(whiteLead) : 0}
+          isWhite
+        />
+      )}
+      {blackCaptured.length > 0 && (
+        <CapturedRow
+          capturedByOpponent={blackCaptured}
+          materialAdvantage={whiteLead > 0 ? whiteLead : 0}
+          isWhite={false}
+        />
+      )}
     </div>
   );
 };

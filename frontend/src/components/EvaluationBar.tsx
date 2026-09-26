@@ -38,10 +38,9 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
     <div
       style={{
         position: 'relative',
-        width: 22,
-        height: '100%',
-        minHeight: 480,
-        borderRadius: 8,
+        width: 'clamp(14px, 2vw, 22px)',
+        alignSelf: 'stretch',
+        borderRadius: 'clamp(4px, 1vw, 8px)',
         overflow: 'hidden',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         backgroundColor: '#16181d',
@@ -49,6 +48,7 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
         userSelect: 'none',
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
       }}
+      title={`Engine Evaluation: ${formattedScore}`}
     >
       {/* Black Section */}
       <div
@@ -62,7 +62,7 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
         }}
       />
 
-      {/* White Section (Grows from bottom) */}
+      {/* White Section (Grows dynamically) */}
       <div
         style={{
           position: 'absolute',
@@ -84,7 +84,7 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
           right: 0,
           top: '50%',
           height: 1,
-          background: 'rgba(255, 255, 255, 0.25)',
+          background: 'rgba(255, 255, 255, 0.3)',
           zIndex: 2,
           pointerEvents: 'none',
         }}
@@ -96,10 +96,10 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
           position: 'absolute',
           left: 0,
           right: 0,
-          top: scoreLabelOnWhite ? 'auto' : 8,
-          bottom: scoreLabelOnWhite ? 8 : 'auto',
+          top: scoreLabelOnWhite ? 'auto' : 6,
+          bottom: scoreLabelOnWhite ? 6 : 'auto',
           textAlign: 'center',
-          fontSize: 10,
+          fontSize: 'clamp(8px, 1.1vw, 9.5px)',
           fontWeight: 800,
           fontFamily: 'var(--font-mono)',
           color: scoreLabelOnWhite ? '#111215' : '#ffffff',
