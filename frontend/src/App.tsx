@@ -3,7 +3,7 @@ import { Chessboard } from './components/Chessboard';
 import { EvaluationBar } from './components/EvaluationBar';
 import { EngineStats } from './components/EngineStats';
 import { MoveLogPanel } from './components/MoveLogPanel';
-import { GameControls } from './components/GameControls';
+import { GameControls, TimeControlOption } from './components/GameControls';
 import { CapturedPieces } from './components/CapturedPieces';
 import { RobotHero } from './components/RobotHero';
 import { engineService } from './services/EngineService';
@@ -24,6 +24,8 @@ import {
   ChevronDown,
   ArrowRight,
   Radio,
+  Timer,
+  Clock,
 } from 'lucide-react';
 
 const LinkedinIcon: React.FC<{ size?: number; color?: string }> = ({ size = 18, color = '#0a66c2' }) => (
@@ -46,6 +48,13 @@ const INITIAL_LEGAL_MOVES = [
   'b1a3', 'b1c3', 'g1f3', 'g1h3',
 ];
 
+function formatTime(seconds: number | null): string {
+  if (seconds === null) return '∞';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 export const App: React.FC = () => {
   const [engineState, setEngineState] = useState<EngineState>({
     fen: INITIAL_FEN,
@@ -67,6 +76,12 @@ export const App: React.FC = () => {
   const [searchDepth,  setSearchDepth]  = useState(4);
   const [soundActive,  setSoundActive]  = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Time controls: null (unlimited), 5 min, 10 min, 15 min
+  const [timeControl, setTimeControl] = useState<TimeControlOption>(10);
+  const [whiteTime,   setWhiteTime]   = useState<number | null>(600);
+  const [blackTime,   setBlackTime]   = useState<number | null>(600);
+  const [isTimeOut,   setIsTimeOut]   = useState<'white' | 'black' | null>(null);
 
   const stateRef    = useRef(engineState);
   stateRef.current  = engineState;
@@ -102,11 +117,50 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // Handle Time Control changes & Resets
+  const handleTimeControlChange = (option: TimeControlOption) => {
+    setTimeControl(option);
+    const initialSeconds = option ? option * 60 : null;
+    setWhiteTime(initialSeconds);
+    setBlackTime(initialSeconds);
+    setIsTimeOut(null);
+  };
+
+  // Clock countdown interval
+  useEffect(() => {
+    if (timeControl === null || movesHistory.length === 0) return;
+    if (engineState.isCheckmate || engineState.isStalemate || isTimeOut) return;
+
+    const timer = setInterval(() => {
+      if (engineState.isWhiteToMove) {
+        setWhiteTime((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            setIsTimeOut('white');
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else {
+        setBlackTime((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            setIsTimeOut('black');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeControl, movesHistory.length, engineState.isWhiteToMove, engineState.isCheckmate, engineState.isStalemate, isTimeOut]);
+
   // AI Move Execution with sound feedback
   const triggerAiMove = useCallback(async () => {
     if (thinkingRef.current) return;
     const cur = stateRef.current;
-    if (cur.isCheckmate || cur.isStalemate) return;
+    if (cur.isCheckmate || cur.isStalemate || isTimeOut) return;
 
     setIsThinking(true);
     try {
@@ -126,11 +180,11 @@ export const App: React.FC = () => {
     } finally {
       setIsThinking(false);
     }
-  }, [searchDepth]);
+  }, [searchDepth, isTimeOut]);
 
   // Turn management
   useEffect(() => {
-    if (isThinking) return;
+    if (isThinking || isTimeOut) return;
     if (engineState.isCheckmate || engineState.isStalemate) return;
 
     const isAiTurn =
@@ -149,12 +203,13 @@ export const App: React.FC = () => {
     engineState.isCheckmate,
     engineState.isStalemate,
     isThinking,
+    isTimeOut,
     triggerAiMove,
   ]);
 
   // Human Move Execution
   const handleMakeMove = useCallback(async (uci: string) => {
-    if (isThinking) return;
+    if (isThinking || isTimeOut) return;
 
     setLastMove(uci);
     setMovesHistory((prev) => [...prev, uci]);
@@ -163,7 +218,7 @@ export const App: React.FC = () => {
     if (!res.success) {
       setMovesHistory((prev) => prev.slice(0, -1));
     }
-  }, [isThinking]);
+  }, [isThinking, isTimeOut]);
 
   const handleNewGame = useCallback(async () => {
     engineService.stopSearch();
@@ -171,12 +226,16 @@ export const App: React.FC = () => {
     setLastMove(null);
     setMovesHistory([]);
     setStats(null);
+    setIsTimeOut(null);
+    const initialSeconds = timeControl ? timeControl * 60 : null;
+    setWhiteTime(initialSeconds);
+    setBlackTime(initialSeconds);
     const newState = await engineService.newGame();
     setEngineState(newState);
-  }, []);
+  }, [timeControl]);
 
   const handleUndo = useCallback(async () => {
-    if (movesHistory.length === 0 || isThinking) return;
+    if (movesHistory.length === 0 || isThinking || isTimeOut) return;
     engineService.stopSearch();
     setIsThinking(false);
 
@@ -193,7 +252,7 @@ export const App: React.FC = () => {
       setMovesHistory((prev) => prev.slice(0, -1));
     }
     setLastMove(null);
-  }, [movesHistory.length, isThinking, playerColor]);
+  }, [movesHistory.length, isThinking, isTimeOut, playerColor]);
 
   const handleSoundToggle = () => {
     const updated = toggleSound();
@@ -213,6 +272,15 @@ export const App: React.FC = () => {
   const isWhiteTurn = engineState.isWhiteToMove;
   const isOpponentTurn = playerColor === 'black' ? isWhiteTurn : !isWhiteTurn;
   const isUserTurn = !isOpponentTurn;
+
+  const topPlayerColor = playerColor === 'black' ? 'white' : 'black';
+  const bottomPlayerColor = playerColor === 'black' ? 'black' : 'white';
+
+  const topPlayerTime = topPlayerColor === 'white' ? whiteTime : blackTime;
+  const bottomPlayerTime = bottomPlayerColor === 'white' ? whiteTime : blackTime;
+
+  const isTopPlayerLow = topPlayerTime !== null && topPlayerTime <= 30;
+  const isBottomPlayerLow = bottomPlayerTime !== null && bottomPlayerTime <= 30;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-studio-dark)', color: '#fff', overflowX: 'hidden' }}>
@@ -255,7 +323,7 @@ export const App: React.FC = () => {
           </span>
         </div>
 
-        {/* Center Minimal Geometric Brand Mark (Desktop) */}
+        {/* Center Minimal Geometric Brand Mark */}
         <div
           style={{
             width: 26,
@@ -318,7 +386,6 @@ export const App: React.FC = () => {
 
         {/* Left Column: Typography & Interactive Badges */}
         <div className="hero-left-col">
-          {/* Greeting Eyebrow */}
           <div>
             <div
               style={{
@@ -349,7 +416,6 @@ export const App: React.FC = () => {
             </p>
           </div>
 
-          {/* Main Title */}
           <h1
             style={{
               fontFamily: 'var(--font-display)',
@@ -364,11 +430,14 @@ export const App: React.FC = () => {
             <span className="blinking-cursor">▌</span>
           </h1>
 
-          {/* Interactive Capability Pills */}
           <div className="hero-pills-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
             <button onClick={scrollToArena} className="loco-pill">
               <Sparkles size={13} />
               Launch Arena
+            </button>
+            <button onClick={scrollToArena} className="loco-pill">
+              <Timer size={13} />
+              {timeControl ? `${timeControl} Min Timer` : 'Timed Clock'}
             </button>
             <button onClick={scrollToCapabilities} className="loco-pill">
               <Zap size={13} />
@@ -381,10 +450,6 @@ export const App: React.FC = () => {
             <button onClick={scrollToCapabilities} className="loco-pill">
               <Activity size={13} />
               Sub-5ms Latency
-            </button>
-            <button onClick={scrollToCapabilities} className="loco-pill">
-              <Layers size={13} />
-              Zobrist TT Cache
             </button>
           </div>
         </div>
@@ -790,7 +855,42 @@ export const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <CapturedPieces fen={engineState.fen} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CapturedPieces fen={engineState.fen} />
+
+                {/* Digital Clock for Top Player */}
+                {timeControl !== null && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      backgroundColor: isTopPlayerLow
+                        ? 'rgba(244, 63, 94, 0.15)'
+                        : isOpponentTurn
+                        ? 'rgba(0, 242, 254, 0.12)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: isTopPlayerLow
+                        ? '1px solid rgba(244, 63, 94, 0.4)'
+                        : isOpponentTurn
+                        ? '1px solid rgba(0, 242, 254, 0.3)'
+                        : '1px solid var(--border-subtle)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'clamp(12px, 1.1vw, 14px)',
+                      fontWeight: 700,
+                      color: isTopPlayerLow ? 'var(--accent-rose)' : isOpponentTurn ? '#ffffff' : 'var(--text-muted)',
+                      boxShadow: isOpponentTurn ? '0 0 10px rgba(0,242,254,0.15)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Clock size={12} />
+                    <span>{formatTime(topPlayerTime)}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Board + Integrated Dynamic Evaluation Bar */}
@@ -806,6 +906,7 @@ export const App: React.FC = () => {
                 onMakeMove={handleMakeMove}
                 disabled={
                   isThinking ||
+                  Boolean(isTimeOut) ||
                   (playerColor === 'white' && !engineState.isWhiteToMove) ||
                   (playerColor === 'black' &&  engineState.isWhiteToMove) ||
                   playerColor === 'ai'
@@ -852,12 +953,64 @@ export const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#888' }}>
-                Move #{movesHistory.length}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#888' }}>
+                  Move #{movesHistory.length}
+                </div>
+
+                {/* Digital Clock for Bottom Player */}
+                {timeControl !== null && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      backgroundColor: isBottomPlayerLow
+                        ? 'rgba(244, 63, 94, 0.15)'
+                        : isUserTurn
+                        ? 'rgba(16, 185, 129, 0.15)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: isBottomPlayerLow
+                        ? '1px solid rgba(244, 63, 94, 0.4)'
+                        : isUserTurn
+                        ? '1px solid rgba(16, 185, 129, 0.35)'
+                        : '1px solid var(--border-subtle)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'clamp(12px, 1.1vw, 14px)',
+                      fontWeight: 700,
+                      color: isBottomPlayerLow ? 'var(--accent-rose)' : isUserTurn ? '#ffffff' : 'var(--text-muted)',
+                      boxShadow: isUserTurn ? '0 0 10px rgba(16,185,129,0.15)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Clock size={12} />
+                    <span>{formatTime(bottomPlayerTime)}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Dynamic Game Alerts */}
+            {isTimeOut && (
+              <div
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: 10,
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  textAlign: 'center',
+                  boxShadow: '0 0 16px rgba(239, 68, 68, 0.3)',
+                }}
+              >
+                ⏱️ Time Out! {isTimeOut === 'white' ? 'White' : 'Black'} ran out of time. {isTimeOut === 'white' ? 'Black' : 'White'} wins!
+              </div>
+            )}
             {engineState.isCheckmate && (
               <div
                 style={{
@@ -892,7 +1045,7 @@ export const App: React.FC = () => {
                 Stalemate! Draw by lack of legal moves.
               </div>
             )}
-            {engineState.inCheck && !engineState.isCheckmate && (
+            {engineState.inCheck && !engineState.isCheckmate && !isTimeOut && (
               <div
                 style={{
                   padding: '8px 14px',
@@ -924,6 +1077,8 @@ export const App: React.FC = () => {
               onDepthChange={setSearchDepth}
               playerColor={playerColor}
               onPlayerColorChange={setPlayerColor}
+              timeControl={timeControl}
+              onTimeControlChange={handleTimeControlChange}
               moveCount={movesHistory.length}
             />
 

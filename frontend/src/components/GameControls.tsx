@@ -1,8 +1,10 @@
 import React from 'react';
 import {
-  RotateCcw, Undo2, ArrowLeftRight, StopCircle, Sliders, User, Bot, Users, Swords,
+  RotateCcw, Undo2, ArrowLeftRight, StopCircle, Sliders, User, Bot, Users, Swords, Clock,
   LucideIcon,
 } from 'lucide-react';
+
+export type TimeControlOption = null | 5 | 10 | 15;
 
 interface GameControlsProps {
   onNewGame: () => void;
@@ -14,6 +16,8 @@ interface GameControlsProps {
   onDepthChange: (depth: number) => void;
   playerColor: 'white' | 'black' | 'both' | 'ai';
   onPlayerColorChange: (color: 'white' | 'black' | 'both' | 'ai') => void;
+  timeControl: TimeControlOption;
+  onTimeControlChange: (option: TimeControlOption) => void;
   moveCount: number;
 }
 
@@ -27,6 +31,13 @@ const MODES: {
   { id: 'black', label: 'Black', sublabel: 'vs AI',    Icon: Bot    },
   { id: 'both',  label: 'Local', sublabel: '2 Players', Icon: Users  },
   { id: 'ai',    label: 'AI',    sublabel: 'vs AI',    Icon: Swords },
+];
+
+const TIMER_OPTIONS: { id: TimeControlOption; label: string; sublabel: string }[] = [
+  { id: 5,    label: '5 min',  sublabel: 'Blitz'     },
+  { id: 10,   label: '10 min', sublabel: 'Rapid'     },
+  { id: 15,   label: '15 min', sublabel: 'Classical' },
+  { id: null, label: '∞',      sublabel: 'No Timer'  },
 ];
 
 const DEPTH_LABELS: Record<number, string> = {
@@ -48,6 +59,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onDepthChange,
   playerColor,
   onPlayerColorChange,
+  timeControl,
+  onTimeControlChange,
   moveCount,
 }) => {
   return (
@@ -88,6 +101,39 @@ export const GameControls: React.FC<GameControlsProps> = ({
             <ArrowLeftRight size={14} />
             <span>Flip</span>
           </button>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+        {/* Timer Option */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 'clamp(9px, 1vw, 10px)',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: 'var(--text-dim)',
+          }}>
+            <Clock size={12} />
+            <span>Time Control</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(4px, 0.8vw, 6px)' }}>
+            {TIMER_OPTIONS.map(({ id, label, sublabel }) => (
+              <button
+                key={String(id)}
+                className={`mode-btn${timeControl === id ? ' active' : ''}`}
+                onClick={() => onTimeControlChange(id)}
+                disabled={isThinking}
+              >
+                <span style={{ fontSize: 'clamp(11px, 1.1vw, 12.5px)', fontWeight: 700 }}>{label}</span>
+                <span style={{ fontSize: 'clamp(8px, 0.8vw, 9px)', color: 'inherit', opacity: 0.7 }}>{sublabel}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Divider */}
