@@ -3,16 +3,16 @@ import { PieceCode } from '../types/chess';
 import { playMoveSound } from '../utils/audio';
 
 /* ====================================================================
-   Midnight Slate Theme — Modern & Clean
+   Clean Tournament Slate Palette — High Contrast & Pure Clarity
    ==================================================================== */
-const LIGHT          = '#4B5568'; // Light Square
-const DARK           = '#151B26'; // Dark Square
-const SELECTED_LIGHT = '#315A8A'; // Selected Square
-const SELECTED_DARK  = '#315A8A'; // Selected Square
-const LAST_LIGHT     = '#3F6B91'; // Last Move
-const LAST_DARK      = '#3F6B91'; // Last Move
-const LEGAL_MOVE     = '#6B9ED6'; // Legal Move
-const CHECK_BG       = 'radial-gradient(ellipse at center, rgba(244, 63, 94, 0.85) 0%, rgba(225, 29, 72, 0.45) 50%, rgba(0,0,0,0) 85%)';
+const LIGHT          = '#ECEEF2'; // Clean Light Square
+const DARK           = '#708298'; // Crisp Slate Dark Square
+const SELECTED_LIGHT = '#93C5FD'; // Selected Light Square
+const SELECTED_DARK  = '#3B82F6'; // Selected Dark Square
+const LAST_LIGHT     = '#BFDBFE'; // Last Move Light
+const LAST_DARK      = '#60A5FA'; // Last Move Dark
+const LEGAL_MOVE     = '#2563EB'; // Legal Move Indicator
+const CHECK_BG       = 'radial-gradient(ellipse at center, rgba(239, 68, 68, 0.85) 0%, rgba(220, 38, 38, 0.45) 55%, rgba(0,0,0,0) 85%)';
 
 interface ChessboardProps {
   fen: string;
@@ -216,11 +216,11 @@ export const Chessboard: React.FC<ChessboardProps> = ({
           height: '100%',
           borderRadius: 'clamp(8px, 1.5vw, 14px)',
           overflow: 'hidden',
-          boxShadow: '0 30px 80px -15px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(0,0,0,0.6)',
+          boxShadow: '0 24px 64px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.1)',
           display: 'grid',
           gridTemplateColumns: 'repeat(8, 1fr)',
           gridTemplateRows:    'repeat(8, 1fr)',
-          border: 'clamp(3px, 0.6vw, 5px) solid #252D3A',
+          border: 'clamp(3px, 0.6vw, 5px) solid #2A3342',
         }}
       >
         {squares.map(({ sq, rank, file, rowIdx, colIdx }) => {
@@ -242,7 +242,6 @@ export const Chessboard: React.FC<ChessboardProps> = ({
           const showRankLabel = colIdx === 0;
           const showFileLabel = rowIdx === 7;
           const isFriendlyPiece = piece !== '--' && piece.startsWith(isWhiteToMove ? 'w' : 'b');
-          const isBlackPiece = piece.startsWith('b');
 
           return (
             <div
@@ -281,11 +280,11 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                     fontSize: 'clamp(8px, 1.3vw, 10px)',
                     fontWeight: 700,
                     fontFamily: 'var(--font-mono)',
-                    color: isLight ? '#151B26' : '#6B9ED6',
+                    color: isLight ? '#708298' : '#ECEEF2',
                     lineHeight: 1,
                     pointerEvents: 'none',
                     zIndex: 6,
-                    opacity: 0.85,
+                    opacity: 0.9,
                   }}
                 >
                   {rank}
@@ -300,11 +299,11 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                     fontSize: 'clamp(8px, 1.3vw, 10px)',
                     fontWeight: 700,
                     fontFamily: 'var(--font-mono)',
-                    color: isLight ? '#151B26' : '#6B9ED6',
+                    color: isLight ? '#708298' : '#ECEEF2',
                     lineHeight: 1,
                     pointerEvents: 'none',
                     zIndex: 6,
-                    opacity: 0.85,
+                    opacity: 0.9,
                   }}
                 >
                   {String.fromCharCode(97 + file)}
@@ -330,7 +329,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
                     zIndex: 2,
                     pointerEvents: 'none',
                   }}
@@ -342,19 +341,19 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                 <div
                   style={{
                     position: 'absolute',
-                    width: piece !== '--' ? '88%' : '30%',
-                    height: piece !== '--' ? '88%' : '30%',
+                    width: piece !== '--' ? '88%' : '28%',
+                    height: piece !== '--' ? '88%' : '28%',
                     borderRadius: '50%',
                     border: piece !== '--' ? `clamp(2.5px, 0.5vw, 3.5px) solid ${LEGAL_MOVE}` : 'none',
-                    backgroundColor: piece !== '--' ? 'transparent' : 'rgba(107, 158, 214, 0.55)',
-                    boxShadow: piece !== '--' ? '0 0 10px rgba(107, 158, 214, 0.45)' : '0 2px 4px rgba(0,0,0,0.4)',
+                    backgroundColor: piece !== '--' ? 'transparent' : 'rgba(37, 99, 235, 0.65)',
+                    boxShadow: piece !== '--' ? '0 0 8px rgba(37, 99, 235, 0.4)' : '0 1px 3px rgba(0,0,0,0.3)',
                     zIndex: 3,
                     pointerEvents: 'none',
                   }}
                 />
               )}
 
-              {/* Realistic High-Res Piece Graphic */}
+              {/* Clean, Realistic Piece Graphic (Zero artificial glow or heavy shadow) */}
               {piece !== '--' && (
                 <img
                   src={`/pieces/${piece}.png`}
@@ -367,10 +366,8 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                     position: 'relative',
                     zIndex: 5,
                     filter: isSelected
-                      ? 'drop-shadow(0 0 6px rgba(107, 158, 214, 0.85)) drop-shadow(0 8px 16px rgba(0,0,0,0.85))'
-                      : isBlackPiece
-                      ? 'drop-shadow(0 0 1.2px rgba(255, 255, 255, 0.45)) drop-shadow(0 3px 6px rgba(0,0,0,0.8))'
-                      : 'drop-shadow(0 3px 6px rgba(0,0,0,0.7)) drop-shadow(0 1px 2px rgba(0,0,0,0.9))',
+                      ? 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))'
+                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28))',
                     transform: isSelected ? 'scale(1.06) translateY(-2px)' : 'scale(1)',
                     transition: 'transform 0.12s cubic-bezier(0.2, 0, 0, 1), filter 0.12s ease',
                     pointerEvents: 'none',
